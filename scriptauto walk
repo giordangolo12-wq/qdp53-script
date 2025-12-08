@@ -1,0 +1,89 @@
+--[[
+	REMEMBER STOLE IS FOR NOOB JUST USE CREDITS LMAO
+]]
+--  SUCK
+
+
+
+local player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local guiIntro = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+guiIntro.ResetOnSpawn = false
+guiIntro.IgnoreGuiInset = true
+
+local intro = Instance.new("TextLabel", guiIntro)
+intro.Size = UDim2.new(1,0,1,0)
+intro.BackgroundTransparency = 1
+intro.Text = "This made by qdp53"
+intro.Font = Enum.Font.GothamBlack
+intro.TextColor3 = Color3.fromRGB(255, 0, 0)
+intro.TextStrokeTransparency = 0
+intro.TextScaled = true
+intro.TextTransparency = 1
+
+local function playIntro()
+	local fadeIn = TweenService:Create(intro, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 0})
+	fadeIn:Play()
+
+	intro.Size = UDim2.new(0.7,0,0.7,0)
+	local zoom = TweenService:Create(intro, TweenInfo.new(0.9, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1,0,1,0)})
+	zoom:Play()
+
+	task.wait(4.0)
+
+	local fadeOut = TweenService:Create(intro, TweenInfo.new(0.7, Enum.EasingStyle.Quad), {TextTransparency = 1})
+	fadeOut:Play()
+	fadeOut.Completed:Wait()
+	intro:Destroy()
+end
+
+playIntro()
+
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+player.CharacterAdded:Connect(function(c)
+	char = c
+	hum = c:WaitForChild("Humanoid")
+end)
+
+local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Name = "qdp53_autowalk"
+ScreenGui.Enabled = false
+
+local toggleBtn = Instance.new("TextButton", ScreenGui)
+toggleBtn.Size = UDim2.new(0,140,0,50)
+toggleBtn.Position = UDim2.new(0,10,0.5,-25)
+toggleBtn.Text = "AutoWalk: OFF"
+toggleBtn.TextScaled = true
+toggleBtn.BackgroundColor3 = Color3.fromRGB(70,25,25)
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+toggleBtn.BorderSizePixel = 0
+
+local autoWalk = false
+
+toggleBtn.MouseButton1Click:Connect(function()
+	autoWalk = not autoWalk
+	if autoWalk then
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(20,120,20)
+		toggleBtn.Text = "AutoWalk: ON"
+	else
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(70,25,25)
+		toggleBtn.Text = "AutoWalk: OFF"
+	end
+end)
+
+task.delay(5.5, function()
+	ScreenGui.Enabled = true
+end)
+
+RS.RenderStepped:Connect(function()
+	if not hum or hum.Health <= 0 then return end
+	local moving = hum.MoveDirection.Magnitude > 0.1
+	if autoWalk and not moving then
+		hum:Move(Vector3.new(0,0,-1), true)
+	end
+end)
