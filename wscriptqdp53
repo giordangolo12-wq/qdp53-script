@@ -1,0 +1,34 @@
+-- Mini Hub con un solo pulsante
+local hub = Instance.new("ScreenGui")
+hub.Name = "MiniHub"
+hub.ResetOnSpawn = false
+hub.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 180, 0, 60)
+frame.Position = UDim2.new(0.5, -90, 0.5, -30)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = hub
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, -20, 1, -20)
+button.Position = UDim2.new(0, 10, 0, 10)
+button.BackgroundColor3 = Color3.fromRGB(60,60,60)
+button.TextColor3 = Color3.fromRGB(255,255,255)
+button.Font = Enum.Font.GothamBold
+button.TextSize = 14
+button.Text = "Start qdp53 scripts"  -- testo aggiornato
+button.Parent = frame
+
+-- Azione al click
+button.MouseButton1Click:Connect(function()
+    local src = game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/refs/heads/main/YeetAFriend", true)
+    local fn = loadstring(src)
+    if fn then
+        fn()
+    else
+        warn("Errore nel compilare lo script remoto")
+    end
+end)
