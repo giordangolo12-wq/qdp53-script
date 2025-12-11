@@ -1,0 +1,130 @@
+-- // GUI principale
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local MinimizeButton = Instance.new("TextButton")
+local Content = Instance.new("Frame")
+
+local ShareButton = Instance.new("TextButton")
+local CopyLinkButton = Instance.new("TextButton")
+
+-- // ScreenGui
+ScreenGui.ResetOnSpawn = false
+
+-- // MainFrame
+MainFrame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 260, 0, 150)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+
+-- // TopBar
+TopBar.Parent = MainFrame
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+
+-- // Title
+Title.Parent = TopBar
+Title.Size = UDim2.new(1, -30, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Qdp Hub"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- // Minimize Button
+MinimizeButton.Parent = TopBar
+MinimizeButton.Size = UDim2.new(0, 30, 1, 0)
+MinimizeButton.Position = UDim2.new(1, -30, 0, 0)
+MinimizeButton.BackgroundTransparency = 1
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.TextSize = 20
+
+-- // Content
+Content.Parent = MainFrame
+Content.Size = UDim2.new(1, 0, 1, -30)
+Content.Position = UDim2.new(0, 0, 0, 30)
+Content.BackgroundTransparency = 1
+
+-- // Auto Music Button (ex Share Song)
+ShareButton.Parent = Content
+ShareButton.Size = UDim2.new(0, 220, 0, 35)
+ShareButton.Position = UDim2.new(0.5, -110, 0, 10)
+ShareButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ShareButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShareButton.Font = Enum.Font.GothamBold
+ShareButton.TextSize = 15
+ShareButton.Text = "Auto Music"
+
+-- // qdp53 YouTube Button
+CopyLinkButton.Parent = Content
+CopyLinkButton.Size = UDim2.new(0, 220, 0, 35)
+CopyLinkButton.Position = UDim2.new(0.5, -110, 0, 55)
+CopyLinkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+CopyLinkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CopyLinkButton.Font = Enum.Font.GothamBold
+CopyLinkButton.TextSize = 15
+CopyLinkButton.Text = "qdp53 YouTube"
+
+-- // Funzione Auto Music
+ShareButton.MouseButton1Click:Connect(function()
+    local args = {
+        {
+            "ShareSong",
+            "Z"
+        }
+    }
+
+    game:GetService("ReplicatedStorage")
+        :WaitForChild("ffrostflame_bridgenet2@1.0.0")
+        :WaitForChild("dataRemoteEvent")
+        :FireServer(unpack(args))
+end)
+
+-- // Copia link YouTube
+CopyLinkButton.MouseButton1Click:Connect(function()
+    setclipboard("https://www.youtube.com/@Qdp53Scripts")
+end)
+
+-- // Minimizza
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    Content.Visible = not minimized
+    MainFrame.Size = minimized and UDim2.new(0, 260, 0, 30) or UDim2.new(0, 260, 0, 150)
+end)
+
+-- // Drag della finestra
+local UIS = game:GetService("UserInputService")
+local dragging, dragStart, startPos
+
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+
+TopBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
