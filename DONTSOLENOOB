@@ -1,0 +1,148 @@
+-- qdp53 HUB - Auto Checkpoint con Salita Preventiva (ALTEZZA AUMENTATA)
+-- Muove tutto il corpo tramite CFrame Tween (prima su, poi al checkpoint)
+
+--// GUI BASE (Struttura HUB originale)
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 300, 0, 200)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.Active = true
+Frame.Draggable = true
+
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundTransparency = 1
+Title.Text = "qdp53 - auto obby"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+
+local Toggle = Instance.new("TextButton", Frame)
+Toggle.Size = UDim2.new(1, -20, 0, 40)
+Toggle.Position = UDim2.new(0, 10, 0, 50)
+Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+Toggle.Font = Enum.Font.Gotham
+Toggle.TextSize = 16
+Toggle.Text = "Auto Checkpoint: OFF"
+
+--// LOGICA
+getgenv().qdp53_AutoCheckpoint = false
+
+local TweenService = game:GetService("TweenService")
+local player = game.Players.LocalPlayer
+
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+local function getHumanoid()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("Humanoid")
+end
+
+local CHECKPOINT_NAME = "Checkpoint"
+local SPEED = 50 -- Velocità per il movimento orizzontale
+local DELAY = 0.5 -- Ritardo tra i checkpoint
+local ALTITUDE_JUMP = 35 -- *** MODIFICATO: Altezza massima della salita in studs ***
+
+local function getCheckpoints()
+    local list = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name == CHECKPOINT_NAME then
+            table.insert(list, obj)
+        end
+    end
+    return list
+end
+
+-- FUNZIONE DI MOVIMENTO BIFASICO: 1. Salita 2. Movimento al Checkpoint
+local function moveTo(cp)
+    local hrp = getHRP()
+    local humanoid = getHumanoid()
+    local originalHipHeight = humanoid.HipHeight
+    humanoid.HipHeight = 0 -- Disabilita per un movimento più stabile
+    
+    -- 1. FASE DI SALITA (UP)
+    
+    -- Posizione di picco (salita verticale)
+    local peakPosition = hrp.Position + Vector3.new(0, ALTITUDE_JUMP, 0)
+    local peakCFrame = CFrame.new(peakPosition)
+    
+    local timeUp = 0.3 -- Tempo fisso per la salita
+    
+    local tweenUp = TweenService:Create(
+        hrp,
+        TweenInfo.new(timeUp, Enum.EasingStyle.Linear),
+        {CFrame = peakCFrame}
+    )
+    
+    tweenUp:Play()
+    tweenUp.Completed:Wait() -- Attende che la salita sia finita
+    
+    -- 2. FASE DI DESTINAZIONE (TO CHECKPOINT)
+    
+    -- Posizione finale del checkpoint (3 studs in alto rispetto al checkpoint)
+    local targetPosition = cp.Position + Vector3.new(0, 3, 0)
+    local targetCFrame = CFrame.new(targetPosition)
+    
+    local distance = (cp.Position - hrp.Position).Magnitude
+    local timeToCp = distance / SPEED
+    
+    local tweenToCp = TweenService:Create(
+        hrp,
+        TweenInfo.new(timeToCp, Enum.EasingStyle.Linear),
+        {CFrame = targetCFrame}
+    )
+
+    tweenToCp:Play()
+    tweenToCp.Completed:Wait() -- Attende l'arrivo al checkpoint
+
+    -- Ripristina l'HipHeight
+    humanoid.HipHeight = originalHipHeight
+end
+
+
+function qdp53_StartAutoCheckpoint()
+    getgenv().qdp53_AutoCheckpoint = true
+
+    task.spawn(function()
+        while getgenv().qdp53_AutoCheckpoint do
+            local checkpoints = getCheckpoints()
+
+            table.sort(checkpoints, function(a, b)
+                local hrp = getHRP()
+                return (a.Position - hrp.Position).Magnitude <
+                       (b.Position - hrp.Position).Magnitude
+            end)
+
+            for _, cp in ipairs(checkpoints) do
+                if not getgenv().qdp53_AutoCheckpoint then break end
+                
+                moveTo(cp)
+                task.wait(DELAY)
+            end
+        end
+    end)
+end
+
+function qdp53_StopAutoCheckpoint()
+    getgenv().qdp53_AutoCheckpoint = false
+end
+
+--// TOGGLE
+Toggle.MouseButton1Click:Connect(function()
+    getgenv().qdp53_AutoCheckpoint = not getgenv().qdp53_AutoCheckpoint
+
+    if getgenv().qdp53_AutoCheckpoint then
+        Toggle.Text = "Auto Checkpoint: ON"
+        Toggle.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+        qdp53_StartAutoCheckpoint()
+    else
+        Toggle.Text = "Auto Checkpoint: OFF"
+        Toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        qdp53_StopAutoCheckpoint()
+    end
+end)
